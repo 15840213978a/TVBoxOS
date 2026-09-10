@@ -126,12 +126,6 @@ jobs:
             sed -i "/jitpack.io/a\        maven { url 'https://o0halflife0o.github.io/crosswalk/releases/crosswalk/android/maven2' }" build.gradle
           fi
 
-      - name: Compress Source Code
-        if: ${{ env.commit != '' && env.commit != 'null' }}
-        working-directory: TVBoxOSC
-        run: |
-          tar -cJf sourceCode-${{ env.commitS }}.tar.xz --exclude=.git --exclude=.github *
-
       - name: Release Apk Sign
         if: ${{ env.commit != '' && env.commit != 'null' }}
         working-directory: TVBoxOSC
@@ -229,7 +223,6 @@ jobs:
             cp -f "$file" "apk/$new_base"
           done < <(find . -type f -name "*release*.apk" -print)
 
-          mv sourceCode-${{ env.commitS }}.* apk/
           ls -lh apk/
 
       - name: Release Note
@@ -263,6 +256,20 @@ jobs:
           name: ${{ matrix.userName }}-${{ matrix.repoName }}
           path: |
             TVBoxOSC/apk/*
+
+      - name: Publish GitHub Release
+        if: ${{ env.commit != '' && env.commit != 'null' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.tag }}
+          name: TVBoxOS ${{ env.tag }}
+          body: |
+            TVBoxOS 自动构建版本
+
+            Commit:
+            ${{ env.commit }}
+          files: |
+            TVBoxOSC/apk/*.apk
 
       - name: Whether Or Not to Publish
         if: ${{ inputs.donotpublish && env.commit != '' && env.commit != 'null' }}
